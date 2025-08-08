@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>CHILDWEI — Tech Page</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05060a;
+      --fg: #dfe7ff;
+      --accent: #00eaff;
+      --accent2: #8a2be2;
+      --accent3: #00ffa3;
+      --grid: rgba(255,255,255,0.09);
+      --ripple: rgba(255,255,255,0.16);
+      --textGlow: 0 0 12px rgba(0, 234, 255, 0.6), 0 0 24px rgba(0, 255, 163, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      overflow: hidden;
+      color-scheme: dark;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .wrap {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .bg-grid {
+      position: absolute; inset: -150vmax;
+      background-image:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), transparent 35%),
+        linear-gradient(0deg, var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 200vmax 200vmax, 80px 80px, 80px 80px;
+      transform: perspective(700px) rotateX(58deg) translateY(12vmin);
+      filter: blur(2px) contrast(122%);
+      animation: panGrid 36s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes panGrid {
+      0% { background-position: 50% 50%, 0 0, 0 0; }
+      100% { background-position: 48% 52%, 0 80px, 80px 0; }
+    }
+
+    .beams {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      background:
+        conic-gradient(from 0deg at 30% 20%, transparent 0 20%, rgba(255,255,255,0.06) 22% 24%, transparent 26% 100%),
+        conic-gradient(from 180deg at 70% 80%, transparent 0 16%, rgba(255,255,255,0.06) 18% 20%, transparent 22% 100%);
+      mix-blend-mode: overlay;
+      animation: sweep 10s linear infinite;
+      filter: blur(2px);
+      transition: opacity .3s ease;
+    }
+    .beams.boost { opacity: 1; filter: brightness(1.2) contrast(1.05); }
+    @keyframes sweep {
+      0%   { transform: translateX(-2%) rotate(0deg); opacity: .5; }
+      50%  { transform: translateX(2%)  rotate(1deg); opacity: .65; }
+      100% { transform: translateX(-2%) rotate(0deg); opacity: .5; }
+    }
+
+    canvas#space {
+      position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+      filter: drop-shadow(0 0 8px rgba(0, 234, 255, .25));
+      pointer-events: none;
+    }
+
+    .stage {
+      position: relative; display: grid; place-items: center; gap: .6rem;
+      padding: 2rem; text-align: center; transform: translateZ(0);
+      user-select: none; will-change: transform; transition: transform .2s ease, filter .2s ease;
+    }
+
+    .logo {
+      font-family: "Orbitron", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      font-weight: 900; letter-spacing: 0.12em; line-height: 1; margin: 0;
+      font-size: clamp(3rem, 12vw, 12rem);
+      background: conic-gradient(from 0deg, var(--accent), var(--accent3), var(--accent2), var(--accent), var(--accent3));
+      background-size: 200% 200%;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: hue 6s linear infinite, floaty 4s ease-in-out infinite;
+      text-shadow: var(--textGlow); filter: saturate(118%);
+      cursor: pointer;
+    }
+    @keyframes hue { 0% { filter: hue-rotate(0deg); background-position: 0% 50%; }
+                     50% { background-position: 100% 50%; }
+                    100% { filter: hue-rotate(360deg); background-position: 0% 50%; } }
+    @keyframes floaty { 0%,100% { transform: translateY(0); }
+                         50%     { transform: translateY(-0.35rem); } }
+
+    .greeting {
+      font: 500 clamp(0.72rem, 2.2vw, 1rem)/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: #c7d3ff; opacity: 0.95; letter-spacing: 0.04em; margin: 0.2rem 0 0;
+      text-shadow: 0 0 10px rgba(0, 234, 255, 0.22); user-select: none;
+      transition: opacity .3s ease;
+    }
+
+    .ripple {
+      position: fixed; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%);
+      width: 4px; height: 4px;
+      background: radial-gradient(circle, var(--ripple), transparent 70%);
+      animation: ripple 800ms cubic-bezier(.2,.8,.2,1) forwards; mix-blend-mode: screen; z-index: 10;
+      filter: blur(.25px);
+    }
+    @keyframes ripple {
+      from { opacity: .52; transform: translate(-50%, -50%) scale(1); }
+      to   { opacity: 0; transform: translate(-50%, -50%) scale(24); }
+    }
+
+    .energy { position: fixed; left:0; top:0; width:0; height:0; pointer-events:none; z-index:9; mix-blend-mode:screen; filter: blur(.2px);}
+    .energy .ring { position:absolute; left:var(--x); top:var(--y); width:2px; height:2px; border-radius:50%; transform:translate(-50%,-50%);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 0 7px var(--accent), inset 0 0 7px var(--accent3);
+      animation: ring 800ms ease-out forwards;
+    }
+    .energy .ring.r2 { animation-delay: .08s; }
+    .energy .ring.r3 { animation-delay: .16s; }
+    @keyframes ring { 0% { transform: translate(-50%,-50%) scale(1); opacity: .45; }
+                      70% { opacity: .23; }
+                     100% { transform: translate(-50%,-50%) scale(36); opacity: 0; } }
+
+    .clockwave, .clockwave2 {
+      position: fixed; inset: 0; pointer-events:none; z-index: 8;
+      --cx: 50%; --cy: 50%;
+      background: radial-gradient(circle at var(--cx) var(--cy), var(--accent)28 0%, transparent 65%);
+      transform-origin: var(--cx) var(--cy);
+      transform: scale(0.15);
+      animation: cw 1200ms ease-out forwards;
+      mix-blend-mode: screen;
+    }
+    .clockwave2 { animation-delay: 120ms; opacity: .8; }
+    @keyframes cw { to { transform: scale(2.6); opacity: 0; } }
+
+    .flash {
+      position: fixed; inset: 0; pointer-events: none; z-index: 12;
+      background: radial-gradient(circle at 50% 50%, #fff7 0%, #fff0 60%);
+      animation: flash 900ms ease-out forwards;
+      mix-blend-mode: screen;
+    }
+    @keyframes flash { 0%{opacity:.0} 20%{opacity:1} 100%{opacity:0} }
+    .logo.mega {
+      animation: megaSpin 1.2s ease-in-out forwards, hue 3s linear infinite;
+      text-shadow: 0 0 22px var(--accent), 0 0 50px var(--accent2);
+      letter-spacing: 0.15em;
+      filter: saturate(150%) brightness(1.08) contrast(108%);
+    }
+    .logo.chromatic {
+      text-shadow:
+        2px 0   var(--accent2),
+       -2px 0   var(--accent3),
+        0   0 20px var(--accent),
+        0   0 36px var(--accent2);
+      filter: saturate(165%);
+    }
+    @keyframes megaSpin { 0%{ transform: translateY(0) scale(1) rotate(0deg); }
+                          40%{ transform: translateY(-2px) scale(1.06) rotate(3deg); }
+                          80%{ transform: translateY(1px)  scale(1.10) rotate(-2deg); }
+                         100%{ transform: translateY(0) scale(1.07) rotate(0deg); } }
+
+    .char { display: inline-block; will-change: transform, opacity, filter; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="bg-grid" id="grid" aria-hidden="true"></div>
+    <div class="beams" aria-hidden="true"></div>
+    <canvas id="space" aria-hidden="true"></canvas>
+
+    <main class="stage safe" id="stage">
+      <h1 class="logo" id="logo" aria-label="CHILDWEI">CHILDWEI</h1>
+      <p class="greeting" id="greeting">你好，欢迎来访～</p>
+    </main>
+  </div>
+
+  <script>
+    // ===== Helpers =====
+    const root = document.documentElement;
+    function hexToRgba(hex, a=1){
+      const m = hex.replace('#','');
+      const r = parseInt(m.slice(0,2),16), g = parseInt(m.slice(2,4),16), b = parseInt(m.slice(4,6),16);
+      return `rgba(${r}, ${g}, ${b}, ${a})`;
+    }
+    function toCanvasXY(clientX, clientY){
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      return { x: (clientX - rect.left) * dpr, y: (clientY - rect.top) * dpr };
+    }
+    function isZh(){
+      const langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
+      return langs.some(l => /^zh\b/i.test(l || ''));
+    }
+
+    // ===== 48-slot palette & greetings =====
+    const greetingEl = document.getElementById('greeting');
+    const canvas = document.getElementById('space');
+    const ctx = canvas.getContext('2d');
+    const logo = document.getElementById('logo');
+    const beams = document.querySelector('.beams');
+    const LANG_KEY = isZh() ? 'zh' : 'en';
+
+    
+    // ===== Sleek-6 Palette (modern + artsy, day/night aware) =====
+    const slots = 48;
+    const steps = slots / 6; // 8 per zone
+
+    const SEGMENTS = [
+      // deepNight 00:00–04:00 — deep indigo/blue-green, low L
+      { name:'deepNight', h0:220, h1:210, aS0:0.82, aS1:0.84, aL0:0.56, aL1:0.57, bgS:0.55, bL0:0.05,  bL1:0.055 },
+      // dawn 04:00–08:00 — lavender → peach-amber (sunrise, slightly muted)
+      { name:'dawn',      h0:260, h1:28,  aS0:0.78, aS1:0.82, aL0:0.60, aL1:0.65,  bgS:0.60, bL0:0.08,  bL1:0.11  },
+      // morning 08:00–12:00 — museum mint (greenish-cyan, fresh but soft)
+      { name:'morning',   h0:28,  h1:155, aS0:0.80, aS1:0.84, aL0:0.62, aL1:0.66,  bgS:0.58, bL0:0.12,  bL1:0.15  },
+      // afternoon 12:00–16:00 — skylab blue (azure/cornflower)
+      { name:'afternoon', h0:155, h1:205, aS0:0.82, aS1:0.82, aL0:0.62, aL1:0.62,  bgS:0.56, bL0:0.13,  bL1:0.15  },
+      // dusk 16:00–20:00 — heliotrope → ultraviolet (magenta-violet)
+      { name:'dusk',      h0:205, h1:315, aS0:0.82, aS1:0.86, aL0:0.60, aL1:0.60,  bgS:0.58, bL0:0.115, bL1:0.10  },
+      // night 20:00–24:00 — teal-indigo loop back, calming
+      { name:'night',     h0:315, h1:220, aS0:0.80, aS1:0.80, aL0:0.58, aL1:0.57,  bgS:0.56, bL0:0.095, bL1:0.07  },
+    ];
+
+    function lerp(a,b,t){ return a + (b - a) * t; }
+    function lerpAngle(a,b,t){
+      const diff = ((b - a + 540) % 360) - 180;
+      return (a + diff * t + 360) % 360;
+    }
+    function hslToRgb(h,s,l){
+      const c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2;
+      let r=0,g=0,b=0;
+      if(h<60){r=c;g=x}else if(h<120){r=x;g=c}else if(h<180){g=c;b=x}else if(h<240){g=x;b=c}else if(h<300){r=x;b=c}else{r=c;b=x}
+      return [r+m,g+m,b+m].map(v=>Math.round(v*255));
+    }
+    function rgbToHex(r,g,b){ return '#' + [r,g,b].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+    function hex(a){ const [r,g,b]=a; return rgbToHex(r,g,b); }
+
+    function paletteForSlot(idx){
+      const seg = Math.floor(idx / steps);
+      const t   = (idx % steps) / steps;
+      const S   = SEGMENTS[seg];
+      const h   = lerpAngle(S.h0, S.h1, t);
+      const aS  = lerp(S.aS0, S.aS1, t);
+      const aL  = lerp(S.aL0, S.aL1, t);
+      const bL  = lerp(S.bL0, S.bL1, t);
+      const bS  = S.bgS;
+      const accent   = hex(hslToRgb(h, aS, aL));
+      const accent2  = hex(hslToRgb((h+24)%360, Math.min(1, aS*0.95), Math.min(1, aL*1.05)));
+      const accent3  = hex(hslToRgb((h+336)%360, Math.min(1, aS*1.00), Math.max(0, aL*0.92)));
+      const bg       = hex(hslToRgb(h, bS, bL));
+      return { h, accent, accent2, accent3, bg, segName: S.name, t };
+    }
+
+    function slotByTime(d=new Date()){ const mins=d.getHours()*60 + d.getMinutes(); return Math.floor(mins / 30) % 48; }
+    let currentSlot = -1;
+function applyPalette(p){
+      root.style.setProperty('--bg', p.bg);
+      root.style.setProperty('--accent', p.accent);
+      root.style.setProperty('--accent2', p.accent2);
+      root.style.setProperty('--accent3', p.accent3);
+      document.body.style.background =
+        `radial-gradient(130vmax 110vmax at 60% 35%, ${hexToRgba(p.accent,0.33)} 0%, transparent 60%),
+         linear-gradient(120deg, ${hexToRgba(p.accent3,0.15)} 0%, transparent 40%, ${hexToRgba(p.accent2,0.13)} 100%),
+         ${p.bg}`;
+      canvas.style.filter = 'drop-shadow(0 0 9px ' + hexToRgba(p.accent,0.28) + ')';
+    }
+
+    const greetingPools = {
+      zh: {
+        deepNight: [
+          '晚安前来坐坐～我是Childwei，欢迎光临🌙',
+          '夜深啦，我在这里等你～一起安静刷刷灵感。',
+          '欢迎来到我的小宇宙，深夜版上线✨',
+          '加个夜宵buff？我陪你把脑洞记下来🍜',
+          '深夜好呀！别忘了放松眼睛和肩颈～',
+          '此刻安静适合思考，欢迎你来！',
+          '谢谢你来访，我会小声说话的🤫',
+          '夜风轻轻，我在主页等你～',
+          '欢迎到访～把今天的好点子存个档💾',
+          '深夜也有好心情，给你一颗星⭐️'
+        ],
+        dawn: [
+          '清晨好！我是Childwei，欢迎开机打卡☀️',
+          '早安呀～祝你今天一路顺风🚀',
+          '欢迎早到的你！热身一下我们开工🧃',
+          '新的一天，请多关照～🌅',
+          '欢迎来访！先喝口温水，我们出发💧',
+          '早餐吃了吗？今天会很顺利！',
+          '你好呀，我已经把页面擦亮啦✨',
+          '清晨的空气超新鲜～欢迎你来🍃',
+          '新的灵感在路上，欢迎搭车🚆',
+          '谢谢光临！把好心情装进口袋😊'
+        ],
+        morning: [
+          '上午好！欢迎来到我的主页～一起高效起来⚡️',
+          '欢迎你～咖啡准备好了☕️',
+          '你好呀～今天我们要更闪耀✨',
+          '欢迎来访！让待办清单瘦一点✅',
+          '很高兴见到你～灵感正在加载中…',
+          '欢迎！小目标逐个拿下💪',
+          'Hi～我已经就位，随时出发🚦',
+          '欢迎光临！今天的心情：晴☀️',
+          '你好呀～保持好奇，奇迹会来🔭',
+          '欢迎～别忘了多喝水和微笑🙂'
+        ],
+        afternoon: [
+          '下午好！欢迎来续航～我们稳稳推进⛽️',
+          '欢迎来访～给脑袋加点清风🍃',
+          '你好呀～灵感在午后也会来敲门🔔',
+          '欢迎～把复杂问题拆成两步走🧩',
+          '很高兴见到你！给自己加个小奖励🎁',
+          '欢迎光临～我们慢慢也能很快🏃‍♂️',
+          '你好呀～补一口茶，刷新一下思路🍵',
+          '欢迎来坐～产出＋快乐两不误😄',
+          '下午的阳光刚刚好～继续前进☀️',
+          '欢迎！做完这一项就更轻松啦✅'
+        ],
+        dusk: [
+          '傍晚好！欢迎来我的小小宇宙🌇',
+          '欢迎～今天的进度收个好尾🎣',
+          '你好呀～晚霞和你都很美✨',
+          '欢迎来访！按下保存键更安心💾',
+          '辛苦啦～一起散散步，放松下👟',
+          '欢迎～温柔地结束，也是胜利🏁',
+          '你好！为明天留下一个好开头📘',
+          '欢迎光临～晚饭吃点喜欢的🍲',
+          '谢谢来到这里～今晚也会顺利🌟',
+          '欢迎！整理一下桌面心情更好🧹'
+        ],
+        night: [
+          '晚上好～我是Childwei，欢迎来玩🌌',
+          '欢迎光临！夜色适合安静输出🧠',
+          '你好呀～给今天画个漂亮句号✔️',
+          '欢迎来访～轻松一下再冲刺💫',
+          '很高兴见到你！灵感在夜里发光✨',
+          '欢迎～喝点温水，状态更稳💧',
+          '你好～别急，慢慢来也很快⏳',
+          '欢迎来到主页～愿你今晚心情很好🙂',
+          '谢谢你来～明天会更棒的🙌',
+          '欢迎～放松一下，不放弃热爱💙'
+        ],
+      },
+      en: {
+        deepNight: [
+          "Welcome! Night mode—ideas still shine ✨",
+          "Late‑night vibes—thanks for stopping by 🌙",
+          "Hi there, I'm Childwei—quiet hours, bright thoughts.",
+          "Good to see you! Save your sparks before sleep 💾",
+          "Hey night owl, make yourself comfy.",
+          "Easy does it—eyes & neck deserve a stretch.",
+          "Shh, creativity at work. Welcome in 🤫",
+          "Calm breeze, calm mind—glad you're here.",
+          "Drop your best idea—I’ll keep it safe ⭐️",
+          "A tiny joy for the big night."
+        ],
+        dawn: [
+          "Good morning! I'm Childwei—booting up ☀️",
+          "Rise and shine. Smooth day ahead 🚀",
+          "Early bird welcome—warm up and go 🧃",
+          "New day, new spark. Let’s roll 🌅",
+          "Sip warm water, we start now 💧",
+          "Breakfast first? Today’s on your side.",
+          "Hey! I polished the page for you ✨",
+          "Fresh air, fresh mind—welcome 🍃",
+          "Ideas inbound—hop on board 🚆",
+          "Thanks for dropping by—pocket some good vibes 😊"
+        ],
+        morning: [
+          "Good morning—let’s be efficient ⚡️",
+          "Coffee’s ready—welcome ☕️",
+          "Shine on today—hello there ✨",
+          "Trim that to‑do list together ✅",
+          "Great to see you—ideas loading…",
+          "Small goals, big wins 💪",
+          "All set—awaiting your command 🚦",
+          "Welcome! Mood: sunny ☀️",
+          "Stay curious—magic follows 🔭",
+          "Hydrate and smile—always a win 🙂"
+        ],
+        afternoon: [
+          "Good afternoon—refueling in progress ⛽️",
+          "Welcome—let the breeze clear the head 🍃",
+          "Ideas knock in the afternoon too 🔔",
+          "Split the complex into two steps 🧩",
+          "Nice to meet you—reward unlocked 🎁",
+          "Slow and steady is still fast 🏃‍♂️",
+          "Tea time, thought refresh 🍵",
+          "Sit down—output + joy, both 😄",
+          "The sun’s friendly—keep going ☀️",
+          "One task done, life lighter ✅"
+        ],
+        dusk: [
+          "Good evening—welcome to my mini‑universe 🌇",
+          "Let’s wrap the day nicely 🎣",
+          "You and the sunset both glow ✨",
+          "Save the progress, mind at ease 💾",
+          "Thanks for the hustle—walk it off 👟",
+          "Ending gently is still a win 🏁",
+          "Lay a neat start for tomorrow 📘",
+          "Dinner first—eat what you love 🍲",
+          "Thanks for being here—tonight will be smooth 🌟",
+          "Tidy desk, tidy mood 🧹"
+        ],
+        night: [
+          "Good night—come play in the stars 🌌",
+          "Welcome! Quiet hours, deep output 🧠",
+          "Put a lovely full stop on today ✔️",
+          "Relax a bit, then one more push 💫",
+          "Great to see you—ideas glow at night ✨",
+          "A warm sip for a steadier you 💧",
+          "No rush—slow is smooth, smooth is fast ⏳",
+          "Hope your night feels light 🙂",
+          "Thanks for coming—tomorrow will be better 🙌",
+          "Unwind, don’t drop your passion 💙"
+        ],
+      }
+    };
+
+    function getZoneBySlot(slot){
+      if (slot < 8) return 'deepNight';
+      if (slot < 16) return 'dawn';
+      if (slot < 24) return 'morning';
+      if (slot < 32) return 'afternoon';
+      if (slot < 40) return 'dusk';
+      return 'night';
+    }
+    let lastGreeting = -1;
+    function updateGreeting(slot){
+      const zone = getZoneBySlot(slot);
+      const pool = greetingPools[LANG_KEY] || greetingPools.zh;
+      const arr = pool[zone];
+      let idx = Math.floor(Math.random()*arr.length);
+      if (idx === lastGreeting) idx = (idx+1)%arr.length;
+      lastGreeting = idx;
+      greetingEl.style.opacity = 0;
+      setTimeout(()=>{
+        greetingEl.textContent = arr[idx];
+        greetingEl.style.opacity = 1;
+      }, 180);
+    }
+
+    const GREETING_INTERVAL_MS = 45000;
+
+    function tick(){
+      const slot = slotByTime();
+      if (slot !== currentSlot){
+        currentSlot = slot;
+        applyPalette(paletteForSlot(slot));
+        updateGreeting(slot);
+      }
+    }
+    tick();
+    setInterval(tick, 60*1000);
+    setInterval(()=>updateGreeting(currentSlot), GREETING_INTERVAL_MS);
+
+    // ===== Particles & interactions (from v12) =====
+    let w,h,dpr, particles=[], mouse={x:.5,y:.5}, mode=1;
+    let BOOST=1;
+    let MAX_PARTICLES = 170;
+    const trails = [];
+    const sparks = [];
+    const sprays = [];
+    const sprayDots = [];
+    const clickPoints = [];
+
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio||1, 2);
+      w = canvas.width = Math.floor(innerWidth*dpr);
+      h = canvas.height = Math.floor(innerHeight*dpr);
+      canvas.style.width = innerWidth+'px';
+      canvas.style.height = innerHeight+'px';
+      particles = createParticles(mode);
+    }
+
+    function rnd(a=1){ return Math.random()*a; }
+
+    function createParticles(modeIndex=0){
+      const arr=[];
+      const count = Math.min(MAX_PARTICLES, Math.max(90, Math.floor((w*h)/(11000*dpr))));
+      for(let i=0;i<count;i++){
+        arr.push({
+          x:rnd(w), y:rnd(h),
+          vx:(rnd(0.6)-0.3)*(1+modeIndex*0.25),
+          vy:(rnd(0.6)-0.3)*(1+modeIndex*0.25),
+          size:rnd(1.6)+0.4,
+          life:rnd(1),
+        });
+      }
+      return arr;
+    }
+
+    let flickerPhase = 0;
+
+    function draw(){
+      ctx.clearRect(0,0,w,h);
+      ctx.save();
+      const accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      const pcol = accentHex;
+      ctx.globalCompositeOperation='lighter';
+      const grad = ctx.createRadialGradient(w*.3, h*.4, 0, w*.3, h*.4, Math.max(w,h)*.7);
+      grad.addColorStop(0, hexToRgba(pcol,0.13)); grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad; ctx.fillRect(0,0,w,h);
+      ctx.globalCompositeOperation='source-over';
+
+      const ox = (mouse.x-0.5)*22*dpr, oy=(mouse.y-0.5)*22*dpr;
+
+      for(let i=0;i<particles.length;i++){
+        const q = particles[i];
+        q.x += q.vx*BOOST; q.y += q.vy*BOOST; q.life += (0.002 + mode*0.001)*BOOST;
+        if(q.x<-10 || q.y<-10 || q.x>w+10 || q.y>h+10){
+          q.x=rnd(w); q.y=rnd(h);
+          q.vx=(rnd(0.6)-0.3)*(1+mode*0.25); q.vy=(rnd(0.6)-0.3)*(1+mode*0.25); q.life=0;
+        }
+        ctx.beginPath(); ctx.arc(q.x+ox, q.y+oy, q.size*dpr, 0, Math.PI*2);
+        ctx.fillStyle = hexToRgba(pcol,0.46); ctx.fill();
+        if (mode>0 && Math.random()<0.045){
+          trails.push({x:q.x+ox, y:q.y+oy, vx:-q.vx*1.8, vy:-q.vy*1.8, life:1});
+        }
+      }
+      for(let i=trails.length-1;i>=0;i--){
+        const t = trails[i];
+        t.x += t.vx; t.y += t.vy; t.life -= 0.04;
+        if(t.life<=0){trails.splice(i,1); continue;}
+        ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(t.x - t.vx*2.6, t.y - t.vy*2.6);
+        ctx.strokeStyle = hexToRgba(pcol,0.22); ctx.lineWidth = 1*dpr; ctx.stroke();
+      }
+
+      for (let i=sparks.length-1; i>=0; i--){
+        const s = sparks[i];
+        s.x += s.vx; s.y += s.vy; s.life -= 0.035;
+        if (s.life <= 0){ sparks.splice(i,1); continue; }
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(${s.c[0]},${s.c[1]},${s.c[2]},${s.life})`;
+        ctx.fill();
+      }
+
+      for (let i=sprays.length-1; i>=0; i--){
+        const sp = sprays[i];
+        const prevX = sp.x, prevY = sp.y;
+        sp.x += sp.vx; sp.y += sp.vy; sp.life -= 0.025;
+        sp.vx *= 0.992; sp.vy *= 0.992;
+        if (sp.life <= 0){ sprays.splice(i,1); continue; }
+        ctx.save();
+        ctx.translate(sp.x, sp.y);
+        ctx.rotate(sp.a);
+        ctx.globalAlpha = sp.life;
+        ctx.fillStyle = `rgba(${sp.c[0]},${sp.c[1]},${sp.c[2]},0.9)`;
+        ctx.fillRect(-sp.len*0.6, -0.6, sp.len*1.2, 1.4);
+        ctx.restore();
+        sprayDots.push({x: prevX, y: prevY, r: 1, life: 0.6, c: sp.c});
+      }
+      for (let i=sprayDots.length-1; i>=0; i--){
+        const d = sprayDots[i];
+        d.life -= 0.03;
+        if (d.life <= 0){ sprayDots.splice(i,1); continue; }
+        ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(${d.c[0]},${d.c[1]},${d.c[2]},${d.life})`;
+        ctx.fill();
+      }
+
+      flickerPhase += 0.05;
+      if (clickPoints.length > 1){
+        for (let i=0; i<clickPoints.length-1; i++){
+          const p1 = clickPoints[i], p2 = clickPoints[i+1];
+          const baseA = 0.14 * p1.life;
+          const flick = 0.06 + 0.05*Math.sin(flickerPhase + i*0.7);
+          ctx.beginPath();
+          ctx.moveTo(p1.x*dpr, p1.y*dpr);
+          ctx.lineTo(p2.x*dpr, p2.y*dpr);
+          ctx.strokeStyle = hexToRgba(pcol, Math.max(0, Math.min(0.22, baseA + flick)));
+          ctx.lineWidth = 1*dpr;
+          ctx.stroke();
+        }
+      }
+      for (let i=clickPoints.length-1; i>=0; i--){
+        clickPoints[i].life -= 0.01;
+        if (clickPoints[i].life <= 0){ clickPoints.splice(i,1); }
+      }
+
+      ctx.restore();
+      requestAnimationFrame(draw);
+    }
+
+    function onMove(e){ const t = e.touches? e.touches[0] : e; mouse.x = t.clientX/innerWidth; mouse.y=t.clientY/innerHeight; }
+    addEventListener('mousemove', onMove, {passive:true});
+    addEventListener('touchmove', onMove, {passive:true});
+
+    // Background click effects
+    function makeRipple(x,y){
+      const r=document.createElement('span'); r.className='ripple'; r.style.left=x+'px'; r.style.top=y+'px';
+      document.body.appendChild(r); setTimeout(()=>r.remove(), 820);
+    }
+    function spawnEnergy(x,y){
+      const box=document.createElement('div'); box.className='energy';
+      const setPos=el=>{el.style.setProperty('--x', x+'px'); el.style.setProperty('--y', y+'px');};
+      const r1=document.createElement('div'); r1.className='ring r1'; setPos(r1);
+      const r2=document.createElement('div'); r2.className='ring r2'; setPos(r2);
+      const r3=document.createElement('div'); r3.className='ring r3'; setPos(r3);
+      box.append(r1,r2,r3); document.body.appendChild(box); setTimeout(()=>box.remove(), 820);
+    }
+    function releaseSparks(clientX,clientY){
+      const col = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      function hexToRgb(hex){ const m=hex.replace('#',''); return [parseInt(m.slice(0,2),16), parseInt(m.slice(2,4),16), parseInt(m.slice(4,6),16)]; }
+      const c = hexToRgb(col);
+      const {x,y} = toCanvasXY(clientX, clientY);
+      const N = 10 + Math.floor(Math.random()*4);
+      for (let i=0;i<N;i++){
+        const a = Math.random()*Math.PI*2;
+        const sp = 1 + Math.random()*1.6;
+        const r = Math.random()*10;
+        sparks.push({ x:x + Math.cos(a)*r, y:y + Math.sin(a)*r, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, size: 0.6 + Math.random()*0.8, life: 0.9, c });
+      }
+    }
+    addEventListener('pointerdown', (e)=>{
+      if (e.target === logo) return;
+      makeRipple(e.clientX, e.clientY);
+      spawnEnergy(e.clientX, e.clientY);
+      releaseSparks(e.clientX, e.clientY);
+      clickPoints.push({x:e.clientX, y:e.clientY, life: 0.9});
+      if (clickPoints.length > 8) clickPoints.shift();
+    }, {passive:true});
+
+    // Logo interactions (unchanged from v12)
+    let logoTotalClicks = 0;
+    let dogMode = false;
+
+    function logoGlitchOnce(){
+      const targetText = dogMode ? '城里汪🐶' : 'CHILDWEI';
+      const chars='!<>{}[]()@#$%^&*+-_=~?'; let t=0; const dur=640; const step=24;
+      const timer=setInterval(()=>{ t+=step; if(t>=dur){clearInterval(timer); logo.textContent=targetText; return;}
+        const g=Math.ceil((1 - t/dur)*3);
+        logo.textContent = targetText.split('').map(ch => (Math.random() < 0.22 + g*0.11) ? chars[(Math.random()*chars.length)|0] : ch).join('');
+      }, step);
+    }
+
+    function logoSpray(clientX, clientY){
+      const rect = logo.getBoundingClientRect();
+      const centerX = rect.left + rect.width/2;
+      const centerY = rect.top + rect.height/2;
+      const baseAngle = Math.atan2(clientY - centerY, clientX - centerX);
+      const {x, y} = toCanvasXY(clientX, clientY);
+      const col = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      function hexToRgb(hex){ const m=hex.replace('#',''); return [parseInt(m.slice(0,2),16), parseInt(m.slice(2,4),16), parseInt(m.slice(4,6),16)]; }
+      const c = hexToRgb(col);
+      sprayDots.push({x, y, r: 2.2, life: 0.6, c});
+      const N = 34;
+      for (let i=0;i<N;i++){
+        const delta = (Math.random()-0.5) * (Math.PI/4.5);
+        const a = baseAngle + delta;
+        const len = 8 + Math.random()*18;
+        const sp = 1.5 + Math.random()*3.0;
+        sprays.push({ x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, len, a, life: 1, c });
+      }
+      const extra = 10;
+      for (let i=0;i<extra;i++){
+        const a = baseAngle + (Math.random()-0.5)*(Math.PI/4);
+        const sp = 1.2 + Math.random()*2.2;
+        sparks.push({ x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, size: 0.7 + Math.random()*0.7, life: 0.9, c });
+      }
+    }
+
+    function megaTransform(toDog){
+      const toText = toDog ? '城里汪🐶' : 'CHILDWEI';
+      const flash = document.createElement('div'); flash.className='flash'; document.body.appendChild(flash);
+      logo.classList.add('mega','chromatic');
+      const old = logo.textContent;
+      const temp = document.createElement('span');
+      temp.textContent = old;
+      temp.style.display='inline-block';
+      temp.style.filter='blur(0px)';
+      temp.style.opacity='1';
+      temp.style.transform='scale(1)';
+      logo.innerHTML='';
+      logo.appendChild(temp);
+      temp.animate([
+        { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)' },
+        { opacity: 0, filter: 'blur(3px)', transform: 'scale(1.06)' }
+      ], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' });
+      setTimeout(()=>{
+        logo.textContent = toText;
+        logo.animate([
+          { opacity: 0, filter: 'blur(3px)', transform: 'scale(0.96)' },
+          { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)' }
+        ], { duration: 360, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' });
+      }, 240);
+      setTimeout(()=>{
+        logo.classList.remove('mega','chromatic');
+        flash.remove();
+      }, 1200);
+    }
+
+    logo.addEventListener('click', (e)=>{
+      logoSpray(e.clientX, e.clientY);
+      if (!dogMode){
+        logoTotalClicks += 1;
+        if (logoTotalClicks % 25 === 0){
+          dogMode = true;
+          megaTransform(true);
+          return;
+        }
+        logoGlitchOnce();
+      } else {
+        dogMode = false;
+        megaTransform(false);
+      }
+    }, {passive:true});
+
+    // Long-press accelerates particles (background only)
+    let pressTimer=null, longActive=false;
+    const LONG_MS=500;
+    addEventListener('pointerdown', (e)=>{
+      if (e.target === logo) return;
+      pressTimer=setTimeout(()=>{ longActive=true; BOOST=1.6; }, LONG_MS);
+    }, {passive:true});
+    function endPress(){
+      clearTimeout(pressTimer);
+      if(longActive){ longActive=false; BOOST=1; }
+    }
+    addEventListener('pointerup', endPress, {passive:true});
+    addEventListener('pointercancel', endPress, {passive:true});
+
+    // Time egg at :00 / :30 (double wave + beam boost)
+    let lastEggKey = '';
+    function timeEggTick(){
+      const d = new Date();
+      const m = d.getMinutes();
+      const s = d.getSeconds();
+      const key = d.getHours()+':'+m;
+      if ((m === 0 || m === 30) && s <= 2 && key !== lastEggKey){
+        lastEggKey = key;
+        const w1=document.createElement('div'); w1.className='clockwave';
+        const w2=document.createElement('div'); w2.className='clockwave2';
+        w1.style.setProperty('--cx','50%'); w1.style.setProperty('--cy','50%');
+        w2.style.setProperty('--cx','50%'); w2.style.setProperty('--cy','50%');
+        document.body.appendChild(w1); document.body.appendChild(w2);
+        setTimeout(()=>{ w1.remove(); w2.remove(); }, 1400);
+        beams.classList.add('boost'); setTimeout(()=>beams.classList.remove('boost'), 800);
+        const rect = canvas.getBoundingClientRect();
+        releaseSparks(rect.left + rect.width/2, rect.top + rect.height/2);
+      }
+    }
+    setInterval(timeEggTick, 200);
+
+    // Device tilt parallax
+    if (window.DeviceOrientationEvent){
+      window.addEventListener('deviceorientation', (ev)=>{
+        const gx = Math.max(-10, Math.min(10, ev.gamma || 0)) / 10;
+        const gy = Math.max(-10, Math.min(10, ev.beta  || 0)) / 10;
+        mouse.x = 0.5 + gx * 0.1;
+        mouse.y = 0.5 + gy * 0.1;
+      }, {passive:true});
+    }
+
+    // Low-end adaptive quality
+    let quality = 'full';
+    const mem = navigator.deviceMemory || 4;
+    if (mem <= 2){ quality = 'lite'; }
+    else if (mem <= 4){ quality = 'balanced'; }
+    if (quality === 'balanced'){ MAX_PARTICLES = 130; }
+    if (quality === 'lite'){ MAX_PARTICLES = 80; beams.style.display = 'none'; }
+    (function fpsProbe(){
+      let frames = 0; let start = performance.now();
+      function probe(){
+        frames++;
+        const now = performance.now();
+        if (now - start > 1000){
+          const fps = frames * 1000 / (now - start);
+          if (fps < 45 && quality !== 'lite'){
+            quality = 'lite';
+            MAX_PARTICLES = 80; beams.style.display = 'none';
+          }
+          return;
+        }
+        requestAnimationFrame(probe);
+      }
+      requestAnimationFrame(probe);
+    })();
+
+    function slotByTime(d=new Date()){ const mins=d.getHours()*60 + d.getMinutes(); return Math.floor(mins / 30) % 48; }
+
+    function init(){ resize(); draw(); }
+    addEventListener('resize', resize);
+    init();
+  </script>
+</body>
+</html>
